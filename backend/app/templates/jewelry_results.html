@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}Jewelry Recommendations — PocketSmart AI{% endblock %}
+
+{% block content %}
+<div style="max-width: 1080px; margin: 1rem auto 3rem;">
+  <!-- Header / Action bar -->
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+    <div>
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 0.5rem;">
+        <span class="badge badge-purple">Jewelry Styling</span>
+        {% if data.is_fallback %}
+          <span class="badge badge-amber">⚡ Fallback Styling Mode</span>
+        {% else %}
+          <span class="badge badge-purple">✨ Gemini Vision AI</span>
+        {% endif %}
+        {% if is_history_view %}
+          <span class="badge badge-primary">Saved Plan: {{ created_at.strftime('%b %d, %Y') }}</span>
+        {% endif %}
+      </div>
+      <h1 style="font-size: 2.2rem; margin-bottom: 0.25rem;">{{ data.occasion }} Jewelry Collection</h1>
+      <p style="color: var(--text-muted);">
+        Harmonized jewelry recommendations matching your attire silhouette and budget.
+      </p>
+    </div>
+
+    <div style="display: flex; gap: 0.75rem;">
+      <a href="/jewelry-planner" class="btn btn-secondary btn-sm">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        New Jewelry Plan
+      </a>
+      <button onclick="window.print()" class="btn btn-outline btn-sm">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Print / PDF
+      </button>
+    </div>
+  </div>
+
+  <!-- Outfit Vision & Styling Analysis Card -->
+  {% if data.outfit_analysis %}
+    <div class="card" style="margin-bottom: 2rem; border-top: 3px solid #a855f7;">
+      <h3 style="font-size: 1.3rem; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 8px;">
+        <span style="color: #c084fc;">👁️</span> Outfit & Silhouette Analysis
+      </h3>
+
+      <div style="display: flex; gap: 2rem; flex-wrap: wrap; align-items: center;">
+        {% if data.image_url %}
+          <div style="flex-shrink: 0; width: 140px; height: 180px; border-radius: var(--radius-md); overflow: hidden; border: 1px solid var(--border-subtle); background: #000;">
+            <img src="{{ data.image_url }}" alt="Uploaded Outfit" style="width: 100%; height: 100%; object-fit: cover;">
+          </div>
+        {% endif %}
+
+        <div style="flex: 1; min-width: 280px;">
+          <div class="grid-2" style="gap: 1rem; margin-bottom: 1rem;">
+            <div>
+              <span style="font-size: 0.8rem; color: var(--text-dim); display: block;">Attire Style</span>
+              <span style="font-weight: 700; color: white;">{{ data.outfit_analysis.outfit_style }}</span>
+            </div>
+            <div>
+              <span style="font-size: 0.8rem; color: var(--text-dim); display: block;">Formality Level</span>
+              <span style="font-weight: 700; color: #a5b4fc;">{{ data.outfit_analysis.formality }}</span>
+            </div>
+            <div>
+              <span style="font-size: 0.8rem; color: var(--text-dim); display: block;">Complementary Jewelry Style</span>
+              <span style="font-weight: 700; color: #6ee7b7;">{{ data.outfit_analysis.suitable_jewelry_style }}</span>
+            </div>
+            <div>
+              <span style="font-size: 0.8rem; color: var(--text-dim); display: block;">Recommended Metals & Gems</span>
+              <span style="font-weight: 700; color: #fde68a;">{{ data.outfit_analysis.suitable_metal_or_gems }}</span>
+            </div>
+          </div>
+
+          {% if data.outfit_analysis.dominant_colors %}
+            <div style="margin-bottom: 0.85rem;">
+              <span style="font-size: 0.8rem; color: var(--text-dim); display: block; margin-bottom: 0.35rem;">Dominant Palette Identified</span>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                {% for color in data.outfit_analysis.dominant_colors %}
+                  <span class="badge badge-purple" style="font-size: 0.78rem;">
+                    {{ color }}
+                  </span>
+                {% endfor %}
+              </div>
+            </div>
+          {% endif %}
+
+          {% if data.outfit_analysis.styling_advice %}
+            <div style="background: rgba(168, 85, 247, 0.08); border-left: 3px solid #a855f7; padding: 0.6rem 0.85rem; border-radius: 4px; font-size: 0.88rem; color: #e9d5ff;">
+              <strong>Stylist Advice:</strong> {{ data.outfit_analysis.styling_advice }}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Financial Summary Cards -->
+  <div class="grid-3" style="margin-bottom: 2rem;">
+    <div class="card" style="border-left: 4px solid #a855f7;">
+      <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">Allocated Jewelry Budget</span>
+      <div style="font-size: 2rem; font-weight: 800; color: white; margin-top: 0.25rem;">
+        {{ data.currency }}{{ "{:,.0f}".format(data.total_budget) }}
+      </div>
+    </div>
+
+    <div class="card" style="border-left: 4px solid #10b981;">
+      <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">Recommendations Sum</span>
+      <div style="font-size: 2rem; font-weight: 800; color: #6ee7b7; margin-top: 0.25rem;">
+        {{ data.currency }}{{ "{:,.0f}".format(data.total_estimated) }}
+      </div>
+    </div>
+
+    <div class="card" style="border-left: 4px solid #f59e0b;">
+      <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">Savings / Buffer</span>
+      <div style="font-size: 2rem; font-weight: 800; color: #fde68a; margin-top: 0.25rem;">
+        {{ data.currency }}{{ "{:,.0f}".format(data.remaining_reserve) }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Recommended Pieces Grid -->
+  <div style="margin-bottom: 2.5rem;">
+    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.5rem;">
+      <h3 style="font-size: 1.4rem;">Curated Jewelry Recommendations</h3>
+      <span style="font-size: 0.85rem; color: var(--text-dim);">
+        *Prices are estimated retail baselines.
+      </span>
+    </div>
+
+    <div class="grid-2">
+      {% for item in data.recommendations %}
+        <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.85rem;">
+              <span class="badge badge-purple">{{ item.category }}</span>
+              <span class="badge badge-primary" style="font-size: 0.78rem;">{{ item.platform }}</span>
+            </div>
+
+            <h4 style="font-size: 1.25rem; margin-bottom: 0.5rem; color: #ffffff;">{{ item.product_name }}</h4>
+
+            <div style="background: rgba(168, 85, 247, 0.08); border-left: 3px solid #a855f7; padding: 0.5rem 0.75rem; border-radius: 4px; margin-bottom: 1rem;">
+              <span style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-dim); font-weight: 600; display: block;">Estimated price</span>
+              <span style="font-size: 1.45rem; font-weight: 800; color: #c084fc;">
+                {{ data.currency }}{{ "{:,.0f}".format(item.estimated_price) }}
+              </span>
+            </div>
+
+            <p style="color: #cbd5e1; font-size: 0.9rem; margin-bottom: 1rem; line-height: 1.5;">
+              <strong style="color: #94a3b8;">Why:</strong> {{ item.reason }}
+            </p>
+
+            {% if item.style or item.color_or_material %}
+              <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 1.25rem;">
+                {% if item.style %}
+                  <span style="font-size: 0.78rem; background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 4px; color: #94a3b8;">
+                    Style: {{ item.style }}
+                  </span>
+                {% endif %}
+                {% if item.color_or_material %}
+                  <span style="font-size: 0.78rem; background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 4px; color: #94a3b8;">
+                    Metal/Stone: {{ item.color_or_material }}
+                  </span>
+                {% endif %}
+              </div>
+            {% endif %}
+          </div>
+
+          <a href="{{ item.search_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline" style="width: 100%; justify-content: center; border-color: #a855f7; color: #c084fc;">
+            Search on {{ item.platform }}
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Bottom CTA -->
+  <div style="text-align: center; margin-top: 3rem;">
+    <a href="/dashboard" class="btn btn-secondary">Back to Dashboard</a>
+  </div>
+</div>
+{% endblock %}

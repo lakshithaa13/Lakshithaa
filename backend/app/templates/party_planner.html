@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}Party & Event Budget Planner — PocketSmart AI{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 1rem auto 3rem;">
+  <!-- Header -->
+  <div style="margin-bottom: 2rem;">
+    <div class="badge badge-emerald" style="margin-bottom: 0.5rem;">Event & Hospitality Assistant</div>
+    <h1 style="font-size: 2.2rem; margin-bottom: 0.5rem;">Party & Event Planner</h1>
+    <p style="color: var(--text-muted); font-size: 1.05rem;">
+      "Plan your event without overspending." Dynamic per-guest catering calculations, venue allocation, decoration kits, and sound setup.
+    </p>
+  </div>
+
+  {% if error %}
+    <div class="alert alert-error">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <div>{{ error }}</div>
+    </div>
+  {% endif %}
+
+  <form method="POST" action="/generate-party" data-loading>
+    <!-- Card 1: Event Fundamentals -->
+    <div class="card" style="margin-bottom: 1.5rem;">
+      <h3 style="font-size: 1.25rem; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 8px;">
+        <span style="color: var(--accent-emerald);">1.</span> Event Scale & Budget
+      </h3>
+
+      <div class="grid-3">
+        <div class="form-group">
+          <label class="form-label" for="budget">Total Event Budget <span class="req">*</span></label>
+          <div style="display: flex; gap: 8px;">
+            <select name="currency" id="currency" class="form-select" style="width: 100px;">
+              <option value="₹" selected>₹ INR</option>
+              <option value="$">$ USD</option>
+              <option value="€">€ EUR</option>
+              <option value="£">£ GBP</option>
+            </select>
+            <input 
+              type="number" 
+              id="budget" 
+              name="budget" 
+              class="form-input" 
+              placeholder="e.g. 35000" 
+              min="1000" 
+              step="500" 
+              value="35000" 
+              required
+            >
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="event_type">Event Type <span class="req">*</span></label>
+          <select id="event_type" name="event_type" class="form-select" required>
+            <option value="Birthday" selected>Birthday Party</option>
+            <option value="Wedding">Wedding Celebration</option>
+            <option value="Engagement">Engagement Ceremony</option>
+            <option value="Anniversary">Anniversary</option>
+            <option value="College Event">College Fest / Gathering</option>
+            <option value="Corporate">Corporate / Team Social</option>
+            <option value="Other">Other Casual Party</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="guest_count">Guest Count <span class="req">*</span></label>
+          <input 
+            type="number" 
+            id="guest_count" 
+            name="guest_count" 
+            class="form-input" 
+            min="1" 
+            max="1000" 
+            value="30" 
+            required
+          >
+          <div class="form-hint">Used for per-plate catering math.</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label" for="location">Location / City <span class="req">*</span></label>
+          <input 
+            type="text" 
+            id="location" 
+            name="location" 
+            class="form-input" 
+            placeholder="e.g. Bangalore, Indiranagar" 
+            value="Bangalore" 
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="venue_requirement">Venue Requirement</label>
+          <select id="venue_requirement" name="venue_requirement" class="form-select">
+            <option value="Needed" selected>Hall / Venue Booking Needed</option>
+            <option value="At Home">Hosting At Home (Save venue cost)</option>
+            <option value="Outdoor">Outdoor / Garden Space</option>
+            <option value="Booked Hall">Banquet Hall</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2: Hospitality & Experience Preferences -->
+    <div class="card" style="margin-bottom: 1.5rem;">
+      <h3 style="font-size: 1.25rem; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 8px;">
+        <span style="color: var(--accent-emerald);">2.</span> Catering, Decor & Entertainment
+      </h3>
+
+      <div class="grid-3">
+        <div class="form-group">
+          <label class="form-label" for="food_preference">Food Preference <span class="req">*</span></label>
+          <select id="food_preference" name="food_preference" class="form-select" required>
+            <option value="Both" selected>Both (Veg & Non-Veg)</option>
+            <option value="Vegetarian">Strictly Vegetarian</option>
+            <option value="Non-Vegetarian">Primarily Non-Vegetarian</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="decoration_level">Decoration Level</label>
+          <select id="decoration_level" name="decoration_level" class="form-select">
+            <option value="Basic">Basic — Balloons, banner & tabletop</option>
+            <option value="Standard" selected>Standard — Theme backdrop & arch</option>
+            <option value="Premium">Premium — Floral arrangement & LED</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="entertainment">Entertainment & Music</label>
+          <select id="entertainment" name="entertainment" class="form-select">
+            <option value="None">None (Self-managed playlist)</option>
+            <option value="Basic" selected>Basic — Wireless Bluetooth & mic</option>
+            <option value="Premium">Premium — DJ / Live host setup</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 0;">
+        <label class="form-label" for="additional_requirements">Additional Event Preferences</label>
+        <textarea 
+          id="additional_requirements" 
+          name="additional_requirements" 
+          class="form-textarea" 
+          rows="3" 
+          placeholder="e.g. Need birthday cake recommendations, kids' party games, or mocktail bar."
+        ></textarea>
+      </div>
+    </div>
+
+    <!-- Submit Action -->
+    <div style="display: flex; justify-content: flex-end; gap: 1rem; align-items: center;">
+      <a href="/dashboard" class="btn btn-secondary">Cancel</a>
+      <button type="submit" class="btn btn-success" style="padding: 0.85rem 2.25rem; font-size: 1.05rem;">
+        Generate Event Budget with Gemini &rarr;
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

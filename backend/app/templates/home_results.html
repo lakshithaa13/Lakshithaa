@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}Home Interior Recommendations — PocketSmart AI{% endblock %}
+
+{% block content %}
+<div style="max-width: 1080px; margin: 1rem auto 3rem;">
+  <!-- Header / Action bar -->
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem;">
+    <div>
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 0.5rem;">
+        <span class="badge badge-primary">Home Interior</span>
+        {% if data.is_fallback %}
+          <span class="badge badge-amber">⚡ Fallback Mode</span>
+        {% else %}
+          <span class="badge badge-emerald">✨ Gemini AI Generated</span>
+        {% endif %}
+        {% if is_history_view %}
+          <span class="badge badge-purple">Saved Plan: {{ created_at.strftime('%b %d, %Y') }}</span>
+        {% endif %}
+      </div>
+      <h1 style="font-size: 2.2rem; margin-bottom: 0.25rem;">Budget & Recommendation Summary</h1>
+      <p style="color: var(--text-muted);">
+        Tailored budget partitions and curated product choices matching your aesthetic criteria.
+      </p>
+    </div>
+
+    <div style="display: flex; gap: 0.75rem;">
+      <a href="/home-planner" class="btn btn-secondary btn-sm">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        New Home Plan
+      </a>
+      <button onclick="window.print()" class="btn btn-outline btn-sm">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Print / Save PDF
+      </button>
+    </div>
+  </div>
+
+  <!-- AI Insight Alert / Notes -->
+  {% if data.ai_notes %}
+    <div class="alert alert-info" style="margin-bottom: 2rem;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      <div>
+        <strong>AI Interior Insights:</strong> {{ data.ai_notes }}
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Financial Summary Cards -->
+  <div class="grid-3" style="margin-bottom: 2rem;">
+    <div class="card" style="border-left: 4px solid var(--primary);">
+      <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">Total Allocated Budget</span>
+      <div style="font-size: 2rem; font-weight: 800; color: white; margin-top: 0.25rem;">
+        {{ data.currency }}{{ "{:,.2f}".format(data.total_budget) }}
+      </div>
+      <div style="font-size: 0.8rem; color: var(--text-dim); margin-top: 0.25rem;">Defined spending ceiling</div>
+    </div>
+
+    <div class="card" style="border-left: 4px solid var(--accent-emerald);">
+      <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">Estimated Recommendations Total</span>
+      <div style="font-size: 2rem; font-weight: 800; color: #6ee7b7; margin-top: 0.25rem;">
+        {{ data.currency }}{{ "{:,.2f}".format(data.total_estimated) }}
+      </div>
+      <div style="font-size: 0.8rem; color: var(--text-dim); margin-top: 0.25rem;">Calculated product estimates</div>
+    </div>
+
+    <div class="card" style="border-left: 4px solid var(--accent-purple);">
+      <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">Emergency Reserve & Savings</span>
+      <div style="font-size: 2rem; font-weight: 800; color: #c084fc; margin-top: 0.25rem;">
+        {{ data.currency }}{{ "{:,.2f}".format(data.remaining_reserve) }}
+      </div>
+      <div style="font-size: 0.8rem; color: var(--text-dim); margin-top: 0.25rem;">Contingency safety buffer</div>
+    </div>
+  </div>
+
+  <!-- Budget Allocation Breakdown -->
+  <div class="card" style="margin-bottom: 2.5rem;">
+    <h3 style="font-size: 1.3rem; margin-bottom: 0.5rem;">Smart Budget Allocation</h3>
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">
+      Partitioned across key interior elements to prevent overspending on secondary items.
+    </p>
+
+    <!-- Percentage Progress Bar -->
+    <div style="display: flex; height: 12px; border-radius: 6px; overflow: hidden; background: rgba(255,255,255,0.06); margin-bottom: 1.75rem;">
+      {% set colors = ['#6366f1', '#10b981', '#a855f7', '#06b6d4', '#f59e0b', '#ec4899'] %}
+      {% for item in data.allocations %}
+        <div 
+          style="width: {{ item.percentage }}%; background-color: {{ colors[loop.index0 % 6] }}; transition: width 0.3s;"
+          title="{{ item.category }}: {{ item.percentage }}%"
+        ></div>
+      {% endfor %}
+    </div>
+
+    <!-- Category Allocation Cards -->
+    <div class="grid-3" style="gap: 1rem;">
+      {% for item in data.allocations %}
+        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.35rem;">
+            <span style="font-weight: 700; color: white; font-size: 0.95rem;">{{ item.category }}</span>
+            <span class="badge badge-primary" style="font-size: 0.75rem;">{{ item.percentage }}%</span>
+          </div>
+          <div style="font-size: 1.25rem; font-weight: 800; color: #818cf8; margin-bottom: 0.25rem;">
+            {{ data.currency }}{{ "{:,.0f}".format(item.allocated_amount) }}
+          </div>
+          {% if item.notes %}
+            <div style="font-size: 0.8rem; color: var(--text-dim);">{{ item.notes }}</div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Curated Product Recommendations -->
+  <div style="margin-bottom: 2.5rem;">
+    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.5rem;">
+      <h3 style="font-size: 1.4rem;">Curated Product Recommendations</h3>
+      <span style="font-size: 0.85rem; color: var(--text-dim);">
+        *Prices are AI-generated market estimates; click links to view live listings.
+      </span>
+    </div>
+
+    <div class="grid-2">
+      {% for item in data.recommendations %}
+        <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.85rem;">
+              <span class="badge badge-primary">{{ item.category }}</span>
+              <span class="badge badge-emerald" style="font-size: 0.78rem;">{{ item.platform }}</span>
+            </div>
+
+            <h4 style="font-size: 1.25rem; margin-bottom: 0.5rem; color: #ffffff;">{{ item.product_name }}</h4>
+
+            <div style="background: rgba(99, 102, 241, 0.08); border-left: 3px solid #6366f1; padding: 0.5rem 0.75rem; border-radius: 4px; margin-bottom: 1rem;">
+              <span style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-dim); font-weight: 600; display: block;">Estimated price</span>
+              <span style="font-size: 1.45rem; font-weight: 800; color: #a5b4fc;">
+                {{ data.currency }}{{ "{:,.0f}".format(item.estimated_price) }}
+              </span>
+            </div>
+
+            <p style="color: #cbd5e1; font-size: 0.9rem; margin-bottom: 1rem; line-height: 1.5;">
+              <strong style="color: #94a3b8;">Why:</strong> {{ item.reason }}
+            </p>
+
+            {% if item.style or item.color_or_material %}
+              <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 1.25rem;">
+                {% if item.style %}
+                  <span style="font-size: 0.78rem; background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 4px; color: #94a3b8;">
+                    Style: {{ item.style }}
+                  </span>
+                {% endif %}
+                {% if item.color_or_material %}
+                  <span style="font-size: 0.78rem; background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 4px; color: #94a3b8;">
+                    Material: {{ item.color_or_material }}
+                  </span>
+                {% endif %}
+              </div>
+            {% endif %}
+          </div>
+
+          <a href="{{ item.search_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline" style="width: 100%; justify-content: center;">
+            Search on {{ item.platform }}
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Bottom CTA -->
+  <div style="text-align: center; margin-top: 3rem;">
+    <a href="/dashboard" class="btn btn-secondary">Back to Dashboard</a>
+  </div>
+</div>
+{% endblock %}

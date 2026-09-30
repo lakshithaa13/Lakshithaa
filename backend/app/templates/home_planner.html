@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}Home Interior Budget Planner — PocketSmart AI{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 1rem auto 3rem;">
+  <!-- Header -->
+  <div style="margin-bottom: 2rem;">
+    <div class="badge badge-primary" style="margin-bottom: 0.5rem;">Interior Design Assistant</div>
+    <h1 style="font-size: 2.2rem; margin-bottom: 0.5rem;">Home Interior Planner</h1>
+    <p style="color: var(--text-muted); font-size: 1.05rem;">
+      Enter your total budget and furnishing requirements. PocketSmart AI will partition your spending and curate products that fit your chosen aesthetic.
+    </p>
+  </div>
+
+  {% if error %}
+    <div class="alert alert-error">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <div>{{ error }}</div>
+    </div>
+  {% endif %}
+
+  <form method="POST" action="/generate-home" data-loading>
+    <!-- Section 1: Financial & Space Parameters -->
+    <div class="card" style="margin-bottom: 1.5rem;">
+      <h3 style="font-size: 1.25rem; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 8px;">
+        <span style="color: var(--primary-light);">1.</span> Budget & Room Specifications
+      </h3>
+
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label" for="budget">Total Budget <span class="req">*</span></label>
+          <div style="display: flex; gap: 8px;">
+            <select name="currency" id="currency" class="form-select" style="width: 100px;">
+              <option value="₹" selected>₹ INR</option>
+              <option value="$">$ USD</option>
+              <option value="€">€ EUR</option>
+              <option value="£">£ GBP</option>
+            </select>
+            <input 
+              type="number" 
+              id="budget" 
+              name="budget" 
+              class="form-input" 
+              placeholder="e.g. 50000" 
+              min="1000" 
+              step="500" 
+              value="{{ prev_data.budget if prev_data else '60000' }}" 
+              required
+            >
+          </div>
+          <div class="form-hint">Enter your target total spending limit.</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="room_type">Room Type <span class="req">*</span></label>
+          <select id="room_type" name="room_type" class="form-select" required>
+            <option value="Living Room" selected>Living Room</option>
+            <option value="Bedroom">Bedroom</option>
+            <option value="Kitchen">Kitchen</option>
+            <option value="Dining Room">Dining Room</option>
+            <option value="Multiple Rooms">Multiple Rooms / Entire Studio</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="style">Interior Aesthetic Style <span class="req">*</span></label>
+        <select id="style" name="style" class="form-select" required>
+          <option value="Modern" selected>Modern — Clean lines, functional, sleek finishes</option>
+          <option value="Minimalist">Minimalist — Clutter-free, muted tones, essential pieces</option>
+          <option value="Traditional">Traditional — Classic wood, rich fabrics, timeless heritage</option>
+          <option value="Luxury">Luxury — Premium velvet, metallic accents, statement lighting</option>
+          <option value="Scandinavian">Scandinavian — Light woods, hygge comfort, neutral palette</option>
+          <option value="Budget Friendly">Budget Friendly — Value-for-money, modular, durable</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Section 2: Specific Furnishing Quantities -->
+    <div class="card" style="margin-bottom: 1.5rem;">
+      <h3 style="font-size: 1.25rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 8px;">
+        <span style="color: var(--primary-light);">2.</span> Item Quantities Needed
+      </h3>
+      <p style="color: var(--text-dim); font-size: 0.88rem; margin-bottom: 1.25rem;">
+        Specify how many of each item you wish to include in your plan.
+      </p>
+
+      <div class="grid-3">
+        <div class="form-group">
+          <label class="form-label" for="sofa_qty">Sofa / Couches</label>
+          <input type="number" id="sofa_qty" name="sofa_qty" class="form-input" min="0" max="10" value="1">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="bed_qty">Beds / Mattresses</label>
+          <input type="number" id="bed_qty" name="bed_qty" class="form-input" min="0" max="10" value="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="dining_table_qty">Dining Tables</label>
+          <input type="number" id="dining_table_qty" name="dining_table_qty" class="form-input" min="0" max="5" value="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="chairs_qty">Chairs / Seating</label>
+          <input type="number" id="chairs_qty" name="chairs_qty" class="form-input" min="0" max="20" value="2">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="lights_qty">Lamps & Fixtures</label>
+          <input type="number" id="lights_qty" name="lights_qty" class="form-input" min="0" max="20" value="2">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="ceiling_fan_qty">Ceiling Fans</label>
+          <input type="number" id="ceiling_fan_qty" name="ceiling_fan_qty" class="form-input" min="0" max="10" value="1">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="curtains_qty">Curtain Sets</label>
+          <input type="number" id="curtains_qty" name="curtains_qty" class="form-input" min="0" max="20" value="2">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="storage_qty">Storage Units / Shelves</label>
+          <input type="number" id="storage_qty" name="storage_qty" class="form-input" min="0" max="10" value="1">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="decor_qty">Decor & Rug Pieces</label>
+          <input type="number" id="decor_qty" name="decor_qty" class="form-input" min="0" max="20" value="2">
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 3: Custom Instructions -->
+    <div class="card" style="margin-bottom: 2rem;">
+      <h3 style="font-size: 1.25rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 8px;">
+        <span style="color: var(--primary-light);">3.</span> Custom Requirements & Space Notes
+      </h3>
+      <p style="color: var(--text-dim); font-size: 0.88rem; margin-bottom: 1rem;">
+        Add any special preferences, room dimensions, color preferences, or specific constraints.
+      </p>
+
+      <div class="form-group" style="margin-bottom: 0;">
+        <textarea 
+          id="custom_requirements" 
+          name="custom_requirements" 
+          class="form-textarea" 
+          rows="3" 
+          placeholder="e.g. Small compact room, prefer warm wood tones, pet-friendly fabric for the sofa."
+        ></textarea>
+      </div>
+    </div>
+
+    <!-- Submit Action -->
+    <div style="display: flex; justify-content: flex-end; gap: 1rem; align-items: center;">
+      <a href="/dashboard" class="btn btn-secondary">Cancel</a>
+      <button type="submit" class="btn btn-primary" style="padding: 0.85rem 2.25rem; font-size: 1.05rem;">
+        Generate Home Plan with Gemini &rarr;
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}
